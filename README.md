@@ -1,10 +1,10 @@
-# @howbuild/next-routes-typesafe
+# next-route-typesafe
 
 `Next.js`의 `link(next/link)`와 `router(next/router)`를 `type safe`하게 사용하게 해주는 library 이며 `pages`폴더를 가지고있는 모든 directory를 탐색하여 `link type`으로 추출합니다.
 
 ## Install
 
-    yarn add @howbuild/next-routes-typesafe
+    yarn add next-route-typesafe
 
 ## Usage
 
@@ -155,7 +155,7 @@
 ### Usage
 
 ```typescript
-import {generateServiceLink} from '@howbuild/next-routes-typesafe';
+import {generateServiceLink} from 'next-route-typesafe';
 
 const generateLink = generateServiceLink({www: "https://www.howbuild.com", ...})
 function ReactElement() {
@@ -193,7 +193,7 @@ generateServiceLink(originMapping): (link: string | {pathname:string, query?:{}}
 ### Usage
 
 ```typescript
-import {generateInternalLink} from '@howbuild/next-routes-typesafe';
+import {generateInternalLink} from 'next-route-typesafe';
 function ReactElement() {
 
   return (
