@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "noEmitOnError": false,
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": false,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "target": "ES5"
+  },
+  "include": ["src/**/*", "src/utils"],
+  "exclude": ["node_modules", "dist", ".yarn", "bin"]
+}
