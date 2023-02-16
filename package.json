@@ -1,5 +1,5 @@
 {
-  "name": "next-routes-typesafe",
+  "name": "next-route-typesafe",
   "version": "0.0.1",
   "main": "./dist/src/index.js",
   "types": "./dist/src/index.d.ts",

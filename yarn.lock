@@ -2109,9 +2109,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next-routes-typesafe@workspace:.":
+"next-route-typesafe@workspace:.":
   version: 0.0.0-use.local
-  resolution: "next-routes-typesafe@workspace:."
+  resolution: "next-route-typesafe@workspace:."
   dependencies:
     "@types/glob": ^8.0.1
     "@types/node": ^18.11.18
