@@ -1,4 +1,4 @@
-import {RoutesTypeGeneratorTemplate, WriteLinkTypeProps, WriteNextRoutesTypeProps} from './RoutesTypeGeneratorTemplate';
+import {RoutesTypeGeneratorTemplate, WriteRoutesTypeProps} from './RoutesTypeGeneratorTemplate';
 import fs from 'fs';
 
 interface GenerateLinkTypeDeclareProps {
@@ -15,17 +15,8 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
   /**
    * @Override
    */
-  protected writeNextRoutesType({
-    packageName,
-    generateNextJsRoutesTypeOverridingDeclare,
-  }: WriteNextRoutesTypeProps): void {
-    const template = this.generateRoutesTypeWithUtilDeclare(
-      generateNextJsRoutesTypeOverridingDeclare({
-        generatedTypeName: this.LINK_TYPE_NAME,
-        internalTypeName: this.LINK_TYPE_NAME,
-        linkTypeDeclareFileName: packageName,
-      }),
-    );
+  protected writeNextRoutesType({packageName}: WriteRoutesTypeProps): void {
+    const template = this.generateRoutesTypeWithUtilDeclare(packageName);
 
     fs.writeFileSync(`${process.cwd()}/${this.NEXT_ROUTES_OVERRIDING_TYPE_NAME}`, template);
   }
@@ -33,7 +24,7 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
   /**
    * @Override
    */
-  protected writeLinkType({packageName, nextJsServicesInfo, config}: WriteLinkTypeProps): void {
+  protected writeLinkType({packageName, nextJsServicesInfo, config}: WriteRoutesTypeProps): void {
     const links = nextJsServicesInfo.map((nextJsServiceInfo) => nextJsServiceInfo.link);
 
     const template = this.generateLinkTypeDeclare({
@@ -52,20 +43,69 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
 declare module '${packageName}' {
   import type { Link } from "${packageName}/dist/src/types"
   
-  export * from '${packageName}';
+  export * from "${packageName}/dist/src/types"
 
   export type ${this.LINK_TYPE_NAME} = (${links.map((link) => `Link<'${link}', ${isStrict}>`).join(' | ')})
 
-  export function generateInternalLink<K extends RouteType>(routes: ${this.LINK_TYPE_NAME}, origin?: string): string;
+  export function generateInternalLink<K extends RouteType>(routes: ${this.LINK_TYPE_NAME}, origin?: string): ${
+      this.LINK_TYPE_NAME
+    };
   export function generateExternalLink(link: string): ${this.LINK_TYPE_NAME};
 }
 `;
   }
 
-  private generateRoutesTypeWithUtilDeclare(nextJsRoutesTypeDeclareTemplate: string) {
+  private generateRoutesTypeWithUtilDeclare(packageName: string) {
     return `\
 /* eslint-disable */
-${nextJsRoutesTypeDeclareTemplate}
+// prettier-ignore
+declare module 'next/link' {
+  import type {ComponentProps} from 'react';
+        
+  import { ${this.LINK_TYPE_NAME} } from '${packageName}';
+  import NextLink, {LinkProps as NextLinkProps} from 'next/dist/client/link';
+        
+  export * from 'next/dist/client/link';
+        
+  export interface LinkProps extends Omit<ComponentProps<typeof NextLink>, 'href'> {
+    href: ${this.LINK_TYPE_NAME};
+  }
+    
+  declare function Link(props: LinkProps): ReturnType<typeof NextLink>;
+  
+  export default Link;
+}
+  
+// prettier-ignore
+declare module 'next/router' {
+  import type {${this.LINK_TYPE_NAME}} from '${packageName}';
+  import type {NextRouter as OriginalNextRouter, SingletonRouter} from 'next/dist/client/router';
+  import OriginalRouter from 'next/dist/client/router';
+        
+  export * from 'next/dist/client/router';
+
+  interface OverridingRouterType {
+    push: (route: ${this.LINK_TYPE_NAME}) => ReturnType<OriginalNextRouter['push']>;
+    replace: (
+      route: ${this.LINK_TYPE_NAME},
+    ) => ReturnType<OriginalNextRouter['replace']>;
+    prefetch: (
+      route: ${this.LINK_TYPE_NAME},
+    ) => ReturnType<OriginalNextRouter['prefetch']>;
+  }
+  
+  interface Router
+    extends Omit<SingletonRouter, 'push' | 'replace' | 'prefetch'>,
+      OverridingRouterType {}
+
+  export interface NextRouter
+    extends Omit<OriginalNextRouter, 'push' | 'replace' | 'prefetch'>,
+      OverridingRouterType {}
+
+  declare const _default: Router;
+  export default _default;
+  export declare function useRouter(): NextRouter;
+}
 `;
   }
 }

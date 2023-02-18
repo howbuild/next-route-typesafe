@@ -11,7 +11,7 @@ export const extractLink = (path: string) => {
   const pathSegments = path.split('/');
   const pageDirectoryIndex = pathSegments.findIndex(isEqual('pages'));
 
-  const link = pathSegments.slice(pageDirectoryIndex + 1).join('/'); // 마지막 "/"를 제거
+  const link = pathSegments.slice(pageDirectoryIndex + 1).join('/');
 
   return link;
 };
