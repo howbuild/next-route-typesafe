@@ -78,7 +78,7 @@ declare module 'next/link' {
   
 // prettier-ignore
 declare module 'next/router' {
-  import type {${this.LINK_TYPE_NAME}} from '${packageName}';
+  import type { ${this.LINK_TYPE_NAME} } from '${packageName}';
   import type {NextRouter as OriginalNextRouter, SingletonRouter} from 'next/dist/client/router';
   import OriginalRouter from 'next/dist/client/router';
         

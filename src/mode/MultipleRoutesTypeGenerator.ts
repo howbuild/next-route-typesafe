@@ -64,39 +64,42 @@ export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
     linkTypeReferencePath,
     nextJsServiceName,
   }: GenerateRoutesTypeWithUtilDeclareProps) {
+    const serviceLinkTypeName = `${this.LINK_TYPE_NAME}['${nextJsServiceName}']`;
+
     return `\
 /// <reference path='${linkTypeReferencePath}' />
 /* eslint-disable */
 // prettier-ignore
 declare module '${packageName}' {
-  import {${this.LINK_TYPE_NAME}} from '${this.LINK_TYPE_DECLARE_NAME}';
+  import { ${this.LINK_TYPE_NAME} } from '${this.LINK_TYPE_DECLARE_NAME}';
 
-  export type ServiceName = keyof ${this.LINK_TYPE_NAME};
+  type ServiceName = keyof ${this.LINK_TYPE_NAME};
 
-  export type Routes<K extends ServiceName> = ${this.LINK_TYPE_NAME}[K];
+  type GenerateLinkReturnType = ${serviceLinkTypeName} & string & {}
 
   export function generateInternalLink(
-    routes: ${this.LINK_TYPE_NAME}['${nextJsServiceName}'], origin?: string
-  ): ${this.LINK_TYPE_NAME}['${nextJsServiceName}'];
+    routes: ${serviceLinkTypeName}, origin?: string
+  ): ${serviceLinkTypeName};
 
   export function generateServiceLink(
     env: any,
-  ): <K extends ServiceName>(type: K, routes: ${this.LINK_TYPE_NAME}[K]) => string;
+  ): <K extends ServiceName>(type: K, routes: ${this.LINK_TYPE_NAME}[K]) => GenerateLinkReturnType;
 
-  export function generateExternalLink(link: string): ${this.LINK_TYPE_NAME};
+  export function generateExternalLink(link: string): GenerateLinkReturnType;
 }
 
 // prettier-ignore
 declare module 'next/link' {
-  import type {ComponentProps} from 'react';
+  import type { ComponentProps } from 'react';
+  import type { LinkType } from '${packageName}';
         
   import { ${this.LINK_TYPE_NAME} } from '${this.LINK_TYPE_DECLARE_NAME}';
-  import NextLink, {LinkProps as NextLinkProps} from 'next/dist/client/link';
+  import NextLink, { LinkProps as NextLinkProps } from 'next/dist/client/link';
         
   export * from 'next/dist/client/link';
         
   export interface LinkProps extends Omit<ComponentProps<typeof NextLink>, 'href'> {
-    href: ${`${this.LINK_TYPE_NAME}['${nextJsServiceName}']`};
+    href: ${serviceLinkTypeName};
   }
     
   declare function Link(props: LinkProps): ReturnType<typeof NextLink>;
@@ -106,19 +109,19 @@ declare module 'next/link' {
   
 // prettier-ignore
 declare module 'next/router' {
-  import type {${this.LINK_TYPE_NAME}} from '${this.LINK_TYPE_DECLARE_NAME}';
-  import type {NextRouter as OriginalNextRouter, SingletonRouter} from 'next/dist/client/router';
+  import type { ${this.LINK_TYPE_NAME} } from '${this.LINK_TYPE_DECLARE_NAME}';
+  import type { NextRouter as OriginalNextRouter, SingletonRouter } from 'next/dist/client/router';
   import OriginalRouter from 'next/dist/client/router';
         
   export * from 'next/dist/client/router';
 
   interface OverridingRouterType {
-    push: (route: ${`${this.LINK_TYPE_NAME}['${nextJsServiceName}']`}) => ReturnType<OriginalNextRouter['push']>;
+    push: (route: ${serviceLinkTypeName}) => ReturnType<OriginalNextRouter['push']>;
     replace: (
-      route: ${`${this.LINK_TYPE_NAME}['${nextJsServiceName}']`},
+      route: ${serviceLinkTypeName},
     ) => ReturnType<OriginalNextRouter['replace']>;
     prefetch: (
-      route: ${`${this.LINK_TYPE_NAME}['${nextJsServiceName}']`},
+      route: ${serviceLinkTypeName},
     ) => ReturnType<OriginalNextRouter['prefetch']>;
   }
   
