@@ -145,7 +145,7 @@ declare module 'next/router' {
 // prettier-ignore
 /* eslint-disable */
 declare module '${this.LINK_TYPE_DECLARE_NAME}' {
-  import type { Link } from "${packageName}/dist/src/types"
+  import type { Link } from "${packageName}/dist/lib/types"
 
   export type ${this.LINK_TYPE_NAME} = {
     ${Object.keys(serviceLinkMapping).map((key) => {
