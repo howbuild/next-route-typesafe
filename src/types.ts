@@ -68,4 +68,5 @@ export type Link<Path extends string, Strict extends boolean> = Strict extends t
   ? PathParams<Path> extends Record<string, ParamValue>
     ? LinkModel<Path>
     : Path | LinkModel<Path>
-  : LinkModel<Path> | Path;
+  : // eslint-disable-next-line @typescript-eslint/ban-types
+    LinkModel<Path> | Path | {};
