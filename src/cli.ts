@@ -20,19 +20,23 @@ export const run = () => {
 
   const routeConfig = getConfig<RouterConfig>(`${process.cwd()}/route.config.js`);
 
-  const ignore = routeConfig?.ignorePath ? [...defaultIgnoreList, ...routeConfig.ignorePath] : defaultIgnoreList;
+  if (!routeConfig) {
+    console.error(chalk.red('route.config.js 파일을 추가해주세요.'));
+    process.exit(-1);
+  }
+
+  const defaultMode = routeConfig.mode ?? 'single';
+  const defaultBasePath = `${path.join(process.cwd(), routeConfig.basePath || '')}/`;
+  const defaultConfig = {isStrict: Boolean(routeConfig.strict), basePath: defaultBasePath};
+  const ignore = routeConfig.ignorePaths ? [...defaultIgnoreList, ...routeConfig.ignorePaths] : defaultIgnoreList;
+
   const matchPaths = fg.sync(`${process.cwd()}/**/pages/**/*.{tsx,jsx}`, {
     onlyFiles: true,
     ignore,
   });
 
-  const defaultMode = routeConfig?.mode ?? 'single';
-
   const RoutesTypeGeneratorClass = RoutesTypeGeneratorFactory(defaultMode);
   const RoutesTypeGenerator = new RoutesTypeGeneratorClass();
-
-  const defaultBasePath = `${path.join(process.cwd(), routeConfig?.basePath || '')}/`;
-  const defaultConfig = {isStrict: Boolean(routeConfig?.strict), basePath: defaultBasePath};
 
   RoutesTypeGenerator.write(matchPaths, defaultConfig);
 

@@ -11,7 +11,6 @@ categories:
     label:
       - 'chore'
       - 'enhancement'
-      - 'documentation'
   - title: '📚 Documentation'
     label: 'documentation'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'

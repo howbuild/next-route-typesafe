@@ -1,9 +1,9 @@
 {
   "name": "next-route-typesafe",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "source": "src/index.ts",
   "module": "dist/lib/index.js",
-  "types": "dist/lib/type.d.ts",
+  "types": "dist/lib/index.d.ts",
   "description": "for nextjs routes type-safe",
   "author": "taekwoosong <taekwoosong@howbuild.com>",
   "bin": {
