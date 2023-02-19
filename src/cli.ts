@@ -1,7 +1,6 @@
 import fg from 'fast-glob';
 import chalk from 'chalk';
-import path from 'path';
-import {getConfig} from './utils';
+import {getConfig, generateAbsolutePath} from './utils';
 import {RouterConfig} from './types';
 
 import {RoutesTypeGeneratorFactory} from './mode';
@@ -18,7 +17,7 @@ export const run = () => {
     '**/node_modules/**',
   ];
 
-  const routeConfig = getConfig<RouterConfig>(`${process.cwd()}/route.config.js`);
+  const routeConfig = getConfig<RouterConfig>(generateAbsolutePath('route.config.js'));
 
   if (!routeConfig) {
     console.error(chalk.red('route.config.js 파일을 추가해주세요.'));
@@ -26,11 +25,14 @@ export const run = () => {
   }
 
   const defaultMode = routeConfig.mode ?? 'single';
-  const defaultBasePath = `${path.join(process.cwd(), routeConfig.basePath || '')}/`;
-  const defaultConfig = {isStrict: Boolean(routeConfig.strict), basePath: defaultBasePath};
-  const ignore = routeConfig.ignorePaths ? [...defaultIgnoreList, ...routeConfig.ignorePaths] : defaultIgnoreList;
 
-  const matchPaths = fg.sync(`${process.cwd()}/**/pages/**/*.{tsx,jsx}`, {
+  const defaultBasePath = `${generateAbsolutePath(routeConfig.basePath || '')}/`;
+  const defaultConfig = {isStrict: Boolean(routeConfig.strict), basePath: defaultBasePath};
+  const ignore = routeConfig.ignorePaths
+    ? [...defaultIgnoreList, ...routeConfig.ignorePaths.map((ignorePath) => generateAbsolutePath(ignorePath))]
+    : defaultIgnoreList;
+
+  const matchPaths = fg.sync(generateAbsolutePath('**', 'pages', '**', '*.{tsx,jsx}'), {
     onlyFiles: true,
     ignore,
   });
