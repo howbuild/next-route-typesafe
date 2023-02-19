@@ -19,7 +19,7 @@
    ```
 2. `generate-routes-type` 실행
 
-`generate-routes-type`를 실행하고나면 root에 `next/router`, `next/link`의 `type` 재정의 파일(`next-routes-overriding.d.ts`)과 page 하위에서 추출한 전체 `link type`을 저장하고 있는 type 정의 파일(`routes.d.ts`)이 하나씩 추가된다.
+`generate-routes-type`를 실행하고나면 root에 `next/router`, `next/link`의 `type` 재정의 파일(`next-routes-overriding.d.ts`)과 page 하위에서 추출한 전체 `link type`을 저장하고 있는 type 정의 파일(`routes.d.ts`)이 하나씩 추가됩니다.
 
 <img width="251" alt="스크린샷 2023-02-15 오전 1 52 16" src="https://user-images.githubusercontent.com/30516609/218803779-bb749c15-6a68-4219-934c-042a1814853c.png">
 
@@ -34,7 +34,7 @@
 | [`basePath`](#basepath) | `mode`가 `monorepo`일때 사용하며 추출된 `link type`들의 key값을 제거할때 사용합니다    | `string(optional)`                 |
 | `ignorePath`            | `pages folder`가 있지만 `link`로 추출되길 원하지 않는 `directory`가 있을때 사용합니다. | `string[](optional)`               |
 | [`strict`](#strict)     | `link`로 추출된 타입 이외에 `string`도 허용할지 여부입니다.`(default:false)`           | `boolean(optional)`                |
-| [`mode`](#mode)         | project의 구조형태 입니다.`(default:single)`                                           | `'monorepo' \| 'single'(optional)` |
+| [`mode`](#mode)         | project의 구조형태 입니다.                                                             | `'monorepo' \| 'single'(required)` |
 
 ## basePath
 
@@ -80,7 +80,7 @@
       - `<Link href={{pathname:"/a/b"}} />`(✅ correct)
       - `<Link href={{pathname:"/a/b", query:{qs:22} }} />`(✅ correct)
       - `<Link href={{pathname:"/a/[b], query:{b:"required", token:"it is query string" }}} />`(✅ correct)
-      - `<Link href={{pathname:"/a/[b]}} />`(❌ error `query`에 b값 필수로 전달해줘야함)
+      - `<Link href={{pathname:"/a/[b]}} />`(❌ error `query`에 b값을 필수로 전달 해줘야 합니다)
 - `strict:false`
   - `Link component href prop`에 추출된 `link type`과 `string type`모두를 전달할 수 있습니다
     - `<Link href={{pathname:"/a/b"}} />`(✅ correct)
@@ -106,7 +106,7 @@
       - pages
         - a
           - c
-            - [userid]
+            - [userId]
         - b
           - [token]
         - ...
@@ -159,7 +159,7 @@ type이 만들어 지는 위치는 `root`에 전체 `link type(route.d.ts)`파�
     - pages
       - a
         - c
-          - [userid]
+          - [userId]
       - b
         - [token]
       - ...
