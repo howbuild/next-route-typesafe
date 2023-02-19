@@ -3,7 +3,7 @@
   "version": "0.0.3",
   "source": "src/index.ts",
   "module": "dist/lib/index.js",
-  "types": "dist/lib/types.d.ts",
+  "types": "dist/lib/index.d.ts",
   "description": "for nextjs routes type-safe",
   "author": "taekwoosong <taekwoosong@howbuild.com>",
   "bin": {

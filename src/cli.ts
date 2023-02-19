@@ -1,7 +1,7 @@
 import fg from 'fast-glob';
 import chalk from 'chalk';
 import path from 'path';
-import {getConfig, assert} from './utils';
+import {getConfig} from './utils';
 import {RouterConfig} from './types';
 
 import {RoutesTypeGeneratorFactory} from './mode';
@@ -20,12 +20,15 @@ export const run = () => {
 
   const routeConfig = getConfig<RouterConfig>(`${process.cwd()}/route.config.js`);
 
-  assert(!routeConfig, 'route.config.js를 root에 추가해주세요.');
+  if (!routeConfig) {
+    console.error(chalk.red('route.config.js 파일을 추가해주세요.'));
+    process.exit(-1);
+  }
 
-  const defaultMode = routeConfig?.mode ?? 'single';
-  const defaultBasePath = `${path.join(process.cwd(), routeConfig?.basePath || '')}/`;
-  const defaultConfig = {isStrict: Boolean(routeConfig?.strict), basePath: defaultBasePath};
-  const ignore = routeConfig?.ignorePath ? [...defaultIgnoreList, ...routeConfig.ignorePath] : defaultIgnoreList;
+  const defaultMode = routeConfig.mode ?? 'single';
+  const defaultBasePath = `${path.join(process.cwd(), routeConfig.basePath || '')}/`;
+  const defaultConfig = {isStrict: Boolean(routeConfig.strict), basePath: defaultBasePath};
+  const ignore = routeConfig.ignorePaths ? [...defaultIgnoreList, ...routeConfig.ignorePaths] : defaultIgnoreList;
 
   const matchPaths = fg.sync(`${process.cwd()}/**/pages/**/*.{tsx,jsx}`, {
     onlyFiles: true,

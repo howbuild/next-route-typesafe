@@ -9,7 +9,7 @@ export interface LinkProps {
  */
 export interface RouterConfig {
   basePath?: string;
-  ignorePath?: string[];
+  ignorePaths?: string[];
   strict?: boolean;
   mode: 'monorepo' | 'single';
 }
