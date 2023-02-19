@@ -1,7 +1,6 @@
 import fs from 'fs';
 import {isEqual, getConfig} from '../utils';
 import chalk from 'chalk';
-import packageJson from '../../package.json';
 import {NextConfig} from 'next';
 import path from 'path';
 
@@ -87,7 +86,7 @@ export abstract class RoutesTypeGeneratorTemplate {
 
   public write(paths: string[], config: RoutesTypeGeneratorConfig) {
     const nextJsServicesInfo = this.generateNextJsServicesInfo(paths, config.basePath);
-    const packageName = packageJson.name;
+    const packageName = 'next-route-typesafe';
 
     try {
       this.writeNextRoutesType({
