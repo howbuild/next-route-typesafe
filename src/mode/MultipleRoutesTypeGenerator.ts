@@ -83,7 +83,7 @@ declare module '${packageName}' {
   ): ${serviceLinkTypeName};
 
   export function generateServiceLink(
-    env: any,
+    env: Record<ServiceName, string>,
   ): <K extends ServiceName>(type: K, routes: ${this.LINK_TYPE_NAME}[K]) => GenerateLinkReturnType;
 
   export function generateExternalLink(link: string): GenerateLinkReturnType;
