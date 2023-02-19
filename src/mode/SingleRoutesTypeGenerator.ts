@@ -1,5 +1,6 @@
 import {RoutesTypeGeneratorTemplate, WriteRoutesTypeProps} from './RoutesTypeGeneratorTemplate';
 import fs from 'fs';
+import {generateAbsolutePath} from '../utils';
 
 interface GenerateLinkTypeDeclareProps {
   packageName: string;
@@ -18,7 +19,7 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
   protected writeNextRoutesType({packageName}: WriteRoutesTypeProps): void {
     const template = this.generateRoutesTypeWithUtilDeclare(packageName);
 
-    fs.writeFileSync(`${process.cwd()}/${this.NEXT_ROUTES_OVERRIDING_TYPE_NAME}`, template);
+    fs.writeFileSync(generateAbsolutePath(this.NEXT_ROUTES_OVERRIDING_TYPE_NAME), template);
   }
 
   /**
@@ -33,7 +34,7 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
       isStrict: Boolean(config.isStrict),
     });
 
-    fs.writeFileSync(`${process.cwd()}/${this.LINK_TYPE_DECLARE_NAME}`, template);
+    fs.writeFileSync(generateAbsolutePath(this.LINK_TYPE_DECLARE_NAME), template);
   }
 
   private generateLinkTypeDeclare({packageName, links, isStrict}: GenerateLinkTypeDeclareProps) {

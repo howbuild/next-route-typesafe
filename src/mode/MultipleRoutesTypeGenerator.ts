@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import {RoutesTypeGeneratorTemplate, WriteRoutesTypeProps} from './RoutesTypeGeneratorTemplate';
+import {generateAbsolutePath} from '../utils';
 
 interface GenerateRoutesTypeWithUtilDeclareProps {
   packageName: string;
@@ -56,7 +57,7 @@ export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
       isStrict: Boolean(config.isStrict),
     });
 
-    fs.writeFileSync(`${process.cwd()}/${this.LINK_TYPE_DECLARE_NAME}`, typeDeclareTemplate);
+    fs.writeFileSync(generateAbsolutePath(this.LINK_TYPE_DECLARE_NAME), typeDeclareTemplate);
   }
 
   private generateRoutesTypeWithUtilDeclare({
@@ -82,7 +83,7 @@ declare module '${packageName}' {
   ): ${serviceLinkTypeName};
 
   export function generateServiceLink(
-    env: any,
+    env: Record<ServiceName, string>,
   ): <K extends ServiceName>(type: K, routes: ${this.LINK_TYPE_NAME}[K]) => GenerateLinkReturnType;
 
   export function generateExternalLink(link: string): GenerateLinkReturnType;
