@@ -41,16 +41,17 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
 // prettier-ignore
 /* eslint-disable */
 declare module '${packageName}' {
-  import type { Link } from "${packageName}/dist/src/types"
+  import type { Link } from "${packageName}/dist/lib/types"
   
-  export * from "${packageName}/dist/src/types"
+  export * from "${packageName}/dist/lib/types"
 
+  type ExternalLink = ${this.LINK_TYPE_NAME} & ""
   export type ${this.LINK_TYPE_NAME} = (${links.map((link) => `Link<'${link}', ${isStrict}>`).join(' | ')})
-
+  
   export function generateInternalLink<K extends RouteType>(routes: ${this.LINK_TYPE_NAME}, origin?: string): ${
       this.LINK_TYPE_NAME
     };
-  export function generateExternalLink(link: string): ${this.LINK_TYPE_NAME};
+  export function generateExternalLink(link: string): ExternalLink;
 }
 `;
   }
