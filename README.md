@@ -1,6 +1,8 @@
 # next-route-typesafe
 
-`Next.js`의 `link(next/link)`와 `router(next/router)`를 `type safe`하게 사용하게 해주는 library 이며 `pages`폴더를 가지고있는 모든 directory를 탐색하여 `link type`으로 추출합니다.
+`next/link`, `next/router`를 `type safe`하게 사용하게 해주는 library 이며 `pages`폴더를 가지고있는 모든 directory를 탐색하여 `link type`으로 추출합니다.
+
+<img width="460" alt="스크린샷 2023-02-19 오후 6 33 29" src="https://user-images.githubusercontent.com/30516609/219940237-43a1c641-89bb-4e2d-ac0d-ce1c513785ee.png">
 
 ## Install
 
@@ -17,22 +19,22 @@
    ```
 2. `generate-routes-type` 실행
 
-`generate-routes-type`를 실행하고나면 root에 `router(next/router)`, `link(next/link)` type 재정의 파일(d.ts)과 page 하위에서 추출한 전체 `link type`을 저장하고 있는 type 정의 파일(d.ts)이 추가된다.
+`generate-routes-type`를 실행하고나면 root에 `next/router`, `next/link`의 `type` 재정의 파일(d.ts)과 page 하위에서 추출한 전체 `link type`을 저장하고 있는 type 정의 파일(d.ts)이 하나씩 추가된다.
 
 <img width="251" alt="스크린샷 2023-02-15 오전 1 52 16" src="https://user-images.githubusercontent.com/30516609/218803779-bb749c15-6a68-4219-934c-042a1814853c.png">
 
-위 사진에서 `route.d.ts`가 page 하위에서 추출한 전체 `link type`이고, `next-router-overriding.d.ts`가 `next router,link`의 `type` 재정의 파일입니다
+위 사진에서 `route.d.ts`가 page 하위에서 추출한 전체 `link type`이고, `next-router-overriding.d.ts`가 `next/router`, `next/link`의 `type` 재정의 파일입니다
 
-> route.config.js의 mode가 monorepo일때는 달라집니다.
+> route.config.js의 [`mode`](#mode)가 monorepo일때는 달라집니다.
 
 ## Config(route.config.js) option
 
-| Name                    | Description                                                                           | Type                               |
-| ----------------------- | ------------------------------------------------------------------------------------- | ---------------------------------- |
-| [`basePath`](#basepath) | `mode`가 `monorepo`일때 사용하며 추출된 `link type`들의 key값을 제거할때 사용합니다   | `string(optional)`                 |
-| `ignorePath`            | `page folder`가 있지만 `link`로 추출되길 원하지 않는 `directory`가 있을때 사용합니다. | `string[](optional)`               |
-| [`strict`](#strict)     | `link`로 추출된 타입 이외에 `string`도 허용할지 여부입니다.`(default:false)`          | `boolean(optional)`                |
-| [`mode`](#mode)         | project의 구조형태 입니다.`(default:single)`                                          | `'monorepo' \| 'single'(optional)` |
+| Name                    | Description                                                                            | Type                               |
+| ----------------------- | -------------------------------------------------------------------------------------- | ---------------------------------- |
+| [`basePath`](#basepath) | `mode`가 `monorepo`일때 사용하며 추출된 `link type`들의 key값을 제거할때 사용합니다    | `string(optional)`                 |
+| `ignorePath`            | `pages folder`가 있지만 `link`로 추출되길 원하지 않는 `directory`가 있을때 사용합니다. | `string[](optional)`               |
+| [`strict`](#strict)     | `link`로 추출된 타입 이외에 `string`도 허용할지 여부입니다.`(default:false)`           | `boolean(optional)`                |
+| [`mode`](#mode)         | project의 구조형태 입니다.`(default:single)`                                           | `'monorepo' \| 'single'(optional)` |
 
 ## basePath
 
@@ -41,84 +43,106 @@
 - `basePath: undefined`
 
   ```typescript
-  'apps/auth':
-        | Link<'/find-id', true>
-        | Link<'/identity-verification/complete', true>
-        | Link<'/identity-verification', true>
-        | Link<'/invite-partners/complete', true>
-        | Link<'/invite-partners', true>
-        | Link<'/register-company', true>
-        | Link<'/reset-password', true>
-        | Link<'/settings/account', true>
-        | Link<'/settings/account/withdrawal', true>
-        | Link<'/signin', true>
-        | Link<'/signup', true>;
-  'apps/blog': Link<'/', true> | Link<'/post/[postNo]', true> | Link<'/search', true>;
-  'apps/fender':
+  'apps/serviceA':
+        | Link<'/a', true>
+        | Link<'/b', true>
+        | Link<'/a/[query]', true>
+  'apps/serviceB': Link<'/', true> | Link<'/post/[postNo]', true> | Link<'/search', true>;
+  'apps/serviceC':
         | Link<'/demo', true>
-        | Link<'/fender-pass-promotion/[passNo]/status', true>
-        | Link<'/fender-pass-promotion', true>
         | Link<'/', true>
-        | Link<'/sites/[fenderNo]', true>
-        | Link<'/sites/[fenderNo]/modify', true>
-        | Link<'/sites/[fenderNo]/status', true>
-        | Link<'/sites', true>
         | Link<'/submit', true>;
   ```
 
 - `basePath: "apps"`
   ```typescript
-  'auth':
-        | Link<'/find-id', true>
-        | Link<'/identity-verification/complete', true>
-        | Link<'/identity-verification', true>
-        | Link<'/invite-partners/complete', true>
-        | Link<'/invite-partners', true>
-        | Link<'/register-company', true>
-        | Link<'/reset-password', true>
-        | Link<'/settings/account', true>
-        | Link<'/settings/account/withdrawal', true>
-        | Link<'/signin', true>
-        | Link<'/signup', true>;
-  'blog': Link<'/', true> | Link<'/post/[postNo]', true> | Link<'/search', true>;
-  'fender':
+  'serviceA':
+        | Link<'/a', true>
+        | Link<'/b', true>
+        | Link<'/a/[query]', true>
+  'serviceB': Link<'/', true> | Link<'/post/[postNo]', true> | Link<'/search', true>;
+  'serviceC':
         | Link<'/demo', true>
-        | Link<'/fender-pass-promotion/[passNo]/status', true>
-        | Link<'/fender-pass-promotion', true>
         | Link<'/', true>
-        | Link<'/sites/[fenderNo]', true>
-        | Link<'/sites/[fenderNo]/modify', true>
-        | Link<'/sites/[fenderNo]/status', true>
-        | Link<'/sites', true>
         | Link<'/submit', true>;
   ```
 
 ## strict
 
+`link type`으로 `string`을 허용할지 여부를 결정하는 option 입니다.
+
 - `strict:true`
-  - `<Link href="{link}" />`, `router.push("{link}")`에서 `{link}`값으로 오로지 추출된 `link type`만 전달할 수 있습니다.
+  - `Link component href prop`에 오로지 추출된 `link type`만 전달할 수 있습니다.
+    - `<Link href="string" />` 형태로 사용시 `path param`이 없는 path만 전달할 수 있습니다
+      - `<Link href="/a/b" />`(✅ correct)
+      - `<Link href="/a/[b]" />`(❌ error)
+    - `<Link href={{pathname:"string", query:{...}}} />` 형태로 사용시 `pathname`에 `path param`여부에 따라 `query`값의 필수 여부가 결정되고, `path param`이외의 값을 `query`에 전달할시 모두 `query string` 으로 바뀝니다.
+      - `<Link href={{pathname:"/a/b"}} />`(✅ correct)
+      - `<Link href={{pathname:"/a/b", query:{qs:22} }} />`(✅ correct)
+      - `<Link href={{pathname:"/a/[b], query:{b:"required", token:"it is query string" }}} />`(✅ correct)
+      - `<Link href={{pathname:"/a/[b]}} />`(❌ error `query`에 b값 필수로 전달해줘야함)
 - `strict:false`
-  - `<Link href="{link}" />`, `router.push("{link}")`에서 `{link}`값으로 추출된 `link type`과 `string type`을 전달할 수 있습니다.
+  - `Link component href prop`에 추출된 `link type`과 `string type`모두를 전달할 수 있습니다
+    - `<Link href={{pathname:"/a/b"}} />`(✅ correct)
+    - `<Link href={{pathname:"/a/[b]"}} />`(✅ correct)
+    - `<Link href="/a/b" />`(✅ correct)
+    - `<Link href="/a/[b]" />`(✅ correct)
+    - `<Link href={44} />`(❌ error)
+
+> `next/link`, `next/router`, [`generateLinkapi`](#api)에서도 똑같은 `rule`이 적용됩니다.
 
 ## mode
 
 `monorepo`일때와 `single`일때 생성되는 파일의 위치가 달라집니다.
 
-- `monorepo`
+### monorepo
 
-  - `root path`에 전체 `link type(d.ts)`파일 하나가 추가되고, ignore에 포함되지않은 Next.js의 각 project root path에 `next/link`, `next/router` type을 overriding하는 타입파일(d.ts)하나가 추가됩니다
+프로젝트 구조가 다음과 같을때
+
+```ts
+  apps
+    - serviveA
+      - ...
+      - pages
+        - a
+          - c
+            - [userid]
+        - b
+          - [token]
+        - ...
+      - package.json
+    - serviceB
+      - ...
+      - pages
+        - ....
+      - package.json
+  package.json
+  ...
+```
+
+타입은 다음과같이 만들어집니다.(`Link type`의 두번째 `Generic`은 [`strict option`](#strict))
+
+```ts
+  serviceA:
+    | Link<'/', false>
+    | Link<'/a', false>
+    | Link<'/a/c', false>
+    | Link<'/a/c/[userId]', false>
+    | Link<'/b/[token]', false>;
+  serviceB:
+    | Link<'/', false>
+    | ...
+```
+
+type이 만들어 지는 위치는 `root`에 전체 `link type(route.d.ts)`파일 하나가 추가되고, ignore에 포함되지않은 `Next.js의 각 root`에 `next/link`, `next/router`의 `type`을 overriding하는 타입파일(`routes-overriding.d.ts`)하나가 추가됩니다
 
     ```ts
     apps
-      - www
+      - serviceA
         - ...
         - package.json
         - `routes-overriding.d.ts(+)`
-      - partners
-        - ...
-        - package.json
-        - `routes-overriding.d.ts(+)`
-      - marketplace
+      - serviceB
         - ...
         - package.json
         - `routes-overriding.d.ts(+)`
@@ -126,19 +150,52 @@
     `routes.d.ts(+)`
     ```
 
-- `single`
+### single
 
-  - `root path`에 `link type(d.ts)`, `next/link`, `next/router` type을 overriding하는 타입파일(d.ts)들이 추가됩니다.
+프로젝트 구조가 다음과 같을때
+
+```ts
+  src
+    - pages
+      - a
+        - c
+          - [userid]
+      - b
+        - [token]
+      - ...
+  package.json
+  ...
+```
+
+타입은 다음과같이 만들어집니다.(`Link type`의 두번째 `Generic`은 [`strict option`](#strict))
+
+```ts
+  type LinkType =
+    | Link<'/', false>
+    | Link<'/a', false>
+    | Link<'/a/c', false>
+    | Link<'/a/c/[userId]', false>
+    | Link<'/b/[token]', false>
+    | ...
+```
+
+root에 `link type(routes.d.ts)`과 `next/link`, `next/router`의 `type`을 overriding하는 타입파일(`next-router-overriding.d.t`)들이 추가됩니다.
 
     ```ts
-    src;
-    package.json`routes.d.ts(+)``next-router-overriding.d.ts(+)`;
+    - ...
+    - package.json
+    - `routes.d.ts(+)`
+    - `next-router-overriding.d.ts(+)`
     ```
 
 ## API
 
-`generate함수` 모두 `parameter`로 `link type`이 기본적으로 추론이되며 `isStrict:false`일시 추론된 값 이외의 `string type`도 전달할 수 있으며 `isStrict:true`일시는 추론된 값만 사용해야합니다.
-`{pathname:string, query?:{}}` 형태로 사용할 시 `pathname`값에 따라 `query`가 자동으로 추론됩니다.
+link를 만들어주는 함수이며 `generate함수` 모두 `parameter`로 `link type`이 기본적으로 추론이고 `strict` 값에 따라 type이 달라집니다
+
+- `isStrict:false`
+  - 추론된 값 이외의 `string type`도 전달할 수 있습니다
+- `isStrict:true`
+  - 추론된 값만 사용이 가능하며 `path param([id]의 형태]`가 있을시에는 `{pathname:string, query:{}}` 의 형태로만 사용해야 합니다
 
 | Name                                            | Description                                                                               |
 | ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
@@ -149,20 +206,17 @@
 
 `mode`가 `monorepo`일때 사용하며 추출된 다른 `Next.js package`의 `link`를 만들때 사용합니다
 
-<img width="535" alt="스크린샷 2023-02-15 오전 3 18 12" src="https://user-images.githubusercontent.com/30516609/218823926-0a19ceff-b2b8-4da9-997d-79a297c0c3ed.png">
-<img width="553" alt="스크린샷 2023-02-15 오전 3 18 39" src="https://user-images.githubusercontent.com/30516609/218823931-e32eac4e-6b4d-41cc-b397-83658d9dcb68.png">
-
 ### Usage
 
 ```typescript
 import {generateServiceLink} from 'next-route-typesafe';
 
-const generateLink = generateServiceLink({www: "https://www.howbuild.com", ...})
+const generateLink = generateServiceLink({serviceA: "https://www.serviceA.com", ...})
 function ReactElement() {
 
   return (
-     //  generateLink("www", "/dashboard") = "https://www.howbuild.com/dashboard"
-    <Link href={generateLink("www", "/dashboard")}>
+     // generateLink("serviceA", "/a") = "https://www.serviceA.com/a/test?qa=55"
+    <Link href={generateLink("serviceA", {pathname:"/a/[id]", query:{id:"test", qs:55}})}>
       <div>move</div>
     </div>
   );
@@ -175,9 +229,9 @@ function ReactElement() {
 generateServiceLink(originMapping): (link: string | {pathname:string, query?:{}} ) => string
 ```
 
-- paremeters
+- parameters
   - `originMapping`
-    - 전체 package들의 origin 값 입니다. (ex, www:"https://www.howbuild.com", marketplace:"...", ...)
+    - 전체 package들의 origin 값 입니다. (ex, {serviceA:"https://www.serviceA.com", serviceB:"https..." ...})
 - return
   - `(link: string | {pathname:string, query?:{}} ) => string`
     - `link`
@@ -187,9 +241,6 @@ generateServiceLink(originMapping): (link: string | {pathname:string, query?:{}}
 
 현재위치의 `package`에 해당하는 `link`를 만들때 사용합니다.
 
-  <img width="703" alt="스크린샷 2023-02-15 오전 3 06 33" src="https://user-images.githubusercontent.com/30516609/218820955-3c3e8f80-76e7-47d3-a237-c75118e8b07b.png">
-  <img width="884" alt="스크린샷 2023-02-15 오전 3 05 48" src="https://user-images.githubusercontent.com/30516609/218820813-3726d3df-ce92-4d3f-b94f-c2b2f1bdbf9c.png">
-  
 ### Usage
 
 ```typescript
@@ -197,7 +248,8 @@ import {generateInternalLink} from 'next-route-typesafe';
 function ReactElement() {
 
   return (
-    <Link href={generateInternalLink("/"}>
+    // generateInternalLink({pathname:"/a/[id]", query: {id:22}}) = "/a/22
+    <Link href={generateInternalLink({pathname:"/a/[id]", query: {id:22}})}>
       <a>move</a>
     </div>
   );
@@ -210,6 +262,6 @@ function ReactElement() {
 generateInternalLink(link: string | {pathname:string, query?:{}} ): string
 ```
 
-- paremeters
+- parameters
   - `link`
     - 추출된 `link type`이 추론되며 `{pathname:string, query?:{}}`형태로도 사용할수 있습니다(`<Link/>의 href`, `router.push()`의 `parameter type`과 동일합니다)
