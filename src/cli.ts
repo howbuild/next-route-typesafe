@@ -6,10 +6,6 @@ import {RouterConfig} from './types';
 
 import {RoutesTypeGeneratorFactory} from './mode';
 
-// import Router from './dist/client/router'
-// export * from './dist/client/router'
-// export default Router
-
 export const run = () => {
   console.log(chalk.green('💬 link 추출중...'));
 
