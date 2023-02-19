@@ -13,7 +13,6 @@ const options = [
   {
     input: 'src/cli.ts',
     output: {
-      sourcemap: true,
       dir: 'dist/script',
       format: 'cjs',
     },
@@ -24,7 +23,6 @@ const options = [
   {
     input: 'src/index.ts',
     output: {
-      sourcemap: true,
       dir: 'dist/lib',
       format: 'esm',
       preserveModules: true,
