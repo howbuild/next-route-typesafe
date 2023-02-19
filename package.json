@@ -1,6 +1,6 @@
 {
   "name": "next-route-typesafe",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "source": "src/index.ts",
   "module": "dist/lib/index.js",
   "types": "dist/lib/type.d.ts",
