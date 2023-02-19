@@ -1,5 +1,4 @@
-/* eslint-disable no-empty */
-// import * as fs from 'fs';
+import chalk from 'chalk';
 
 /**
  * config 파일을 가져오는 함수
@@ -9,7 +8,9 @@ export const getConfig = <T = any>(filePath: string): T | undefined => {
   let config;
   try {
     config = require(filePath);
-  } catch (error) {}
+  } catch (error) {
+    console.error(chalk.red(`${filePath}를 찾을 수 없습니다 : ${error}`));
+  }
 
   return config as T | undefined;
 };

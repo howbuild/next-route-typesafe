@@ -1,6 +1,8 @@
-import {extractLink, getNextJsPageExtensions, findPathIncludeFileFromCurrentPath} from '../utils';
+import fs from 'fs';
+import {isEqual, getConfig} from '../utils';
 import chalk from 'chalk';
-import packageJson from '../../package.json';
+import {NextConfig} from 'next';
+import path from 'path';
 
 export interface NextJsService {
   serviceName: string;
@@ -9,19 +11,7 @@ export interface NextJsService {
   rootPath: string;
 }
 
-interface GenerateNextJsRoutesTypeOverridingDeclareProps {
-  generatedTypeName: string;
-  linkTypeDeclareFileName: string;
-  internalTypeName?: string;
-}
-
-export interface WriteNextRoutesTypeProps {
-  nextJsServicesInfo: NextJsService[];
-  packageName: string;
-  generateNextJsRoutesTypeOverridingDeclare: (props: GenerateNextJsRoutesTypeOverridingDeclareProps) => string;
-}
-
-export interface WriteLinkTypeProps {
+export interface WriteRoutesTypeProps {
   nextJsServicesInfo: NextJsService[];
   packageName: string;
   config: RoutesTypeGeneratorConfig;
@@ -34,48 +24,75 @@ export interface RoutesTypeGeneratorConfig {
 
 export abstract class RoutesTypeGeneratorTemplate {
   /**
-   * path에있는 nextjs serivce의 pageExtensions을 읽어와서 regex를 만듦
+   * path에있는 next.config.js의 pageExtensions을 읽어온 후 regex로 변환하여 return
    */
-  private getNextJsPageExtensionsRegex(path: string) {
-    return new RegExp(
-      `(index)?\\.(${getNextJsPageExtensions(path)
-        .map((extension: any) => extension)
-        .join('|')})`,
-    );
+  private getNextJsPageExtensionsRegex(inputPath: string) {
+    const nextJsConfig = getConfig<NextConfig>(path.join(inputPath, 'next.config.js'));
+    const nextJsPageExtensions = nextJsConfig?.pageExtensions ?? ['tsx', 'jsx', 'ts', 'js'];
+
+    return new RegExp(`(index)?\\.(${nextJsPageExtensions.map((extension) => extension).join('|')})`);
+  }
+
+  /**
+   * currentPath로부터 path를 한단계식 줄여가며 targetFile을 찾고 그 path를 return하는 함수
+   * @example
+   * return "a/b/c/"
+   * currentPath="a/b/c/d/e/f", targetFile:next.config.js(a/b/c/에 있다면)
+   */
+  private findPathIncludeFileFromCurrentPath(currentPath: string, targetFile: string): string {
+    if (!currentPath) return '';
+    if (fs.existsSync(`${currentPath}/${targetFile}`)) return currentPath;
+    return this.findPathIncludeFileFromCurrentPath(currentPath.split('/').slice(0, -1).join('/'), targetFile);
+  }
+
+  /**
+   * 주어진 path로부터 pages/ 디렉토리 하위를 탐색해서 link를 추출
+   * @param path 추출할 대상(apps/pages/production/[detail]/index.tsx 형태)
+   * @example
+   * return "/production/[detail]/index.tsx"
+   * extractLink("src/pages/production/[detail]/index.tsx")
+   */
+  private extractLink(path: string) {
+    const pathSegments = path.split('/');
+    const pageDirectoryIndex = pathSegments.findIndex(isEqual('pages'));
+
+    const link = pathSegments.slice(pageDirectoryIndex + 1).join('/');
+
+    return link;
   }
 
   private generateNextJsServicesInfo(paths: string[], basePath: string): NextJsService[] {
     return paths.map((path) => {
-      const rootPath = findPathIncludeFileFromCurrentPath(path, 'next.config.js');
+      const rootPath = this.findPathIncludeFileFromCurrentPath(path, 'next.config.js');
 
       return {
         serviceName: rootPath.replace(basePath, '').split('/').join('/'),
         rootPath,
         pagePath: path,
-        link: `/${extractLink(path).replace(this.getNextJsPageExtensionsRegex(rootPath), '').replace(/\/$/, '')}`,
+        link: `/${this.extractLink(path).replace(this.getNextJsPageExtensionsRegex(rootPath), '').replace(/\/$/, '')}`,
       };
     });
   }
 
   /**
-   * nextjs 프로젝트 root에 next/link, next/router overriding type을 만듦
+   * nextjs 프로젝트 root에 next/link, next/router overriding type을 만들 함수
    */
-  protected abstract writeNextRoutesType(props: WriteNextRoutesTypeProps): void;
+  protected abstract writeNextRoutesType(props: WriteRoutesTypeProps): void;
 
   /**
-   * 전체 프로젝트 page하위의 path를 추출하여 link type을 만듦
+   * 전체 프로젝트 page하위의 path를 추출하여 link type을 만들 함수
    */
-  protected abstract writeLinkType(props: WriteLinkTypeProps): void;
+  protected abstract writeLinkType(props: WriteRoutesTypeProps): void;
 
   public write(paths: string[], config: RoutesTypeGeneratorConfig) {
     const nextJsServicesInfo = this.generateNextJsServicesInfo(paths, config.basePath);
-    const packageName = packageJson.name;
+    const packageName = 'next-route-typesafe';
 
     try {
       this.writeNextRoutesType({
         packageName,
         nextJsServicesInfo,
-        generateNextJsRoutesTypeOverridingDeclare: this.generateNextJsRoutesTypeOverridingDeclare,
+        config,
       });
 
       this.writeLinkType({
@@ -87,62 +104,5 @@ export abstract class RoutesTypeGeneratorTemplate {
       console.log(chalk.red(`write function error: ${error}`));
       process.exit(-1);
     }
-  }
-
-  private generateNextJsRoutesTypeOverridingDeclare({
-    generatedTypeName,
-    linkTypeDeclareFileName,
-    internalTypeName,
-  }: GenerateNextJsRoutesTypeOverridingDeclareProps) {
-    return `\
-// prettier-ignore
-declare module 'next/link' {
-  import type {ComponentProps} from 'react';
-        
-  import { ${generatedTypeName} } from '${linkTypeDeclareFileName}';
-  import NextLink, {LinkProps as NextLinkProps} from 'next/dist/client/link';
-        
-  export * from 'next/dist/client/link';
-        
-  export interface LinkProps extends Omit<ComponentProps<typeof NextLink>, 'href'> {
-    href: ${internalTypeName};
-  }
-    
-  declare function Link(props: LinkProps): ReturnType<typeof NextLink>;
-  
-  export default Link;
-}
-  
-// prettier-ignore
-declare module 'next/router' {
-  import type {${generatedTypeName}} from '${linkTypeDeclareFileName}';
-  import type {NextRouter as OriginalNextRouter, SingletonRouter} from 'next/dist/client/router';
-  import OriginalRouter from 'next/dist/client/router';
-        
-  export * from 'next/dist/client/router';
-
-  interface OverridingRouterType {
-    push: (route: ${internalTypeName}) => ReturnType<OriginalNextRouter['push']>;
-    replace: (
-      route: ${internalTypeName},
-    ) => ReturnType<OriginalNextRouter['replace']>;
-    prefetch: (
-      route: ${internalTypeName},
-    ) => ReturnType<OriginalNextRouter['prefetch']>;
-  }
-  
-  interface Router
-    extends Omit<SingletonRouter, 'push' | 'replace' | 'prefetch'>,
-      OverridingRouterType {}
-
-  export interface NextRouter
-    extends Omit<OriginalNextRouter, 'push' | 'replace' | 'prefetch'>,
-      OverridingRouterType {}
-
-  declare const _default: Router;
-  export default _default;
-  export declare function useRouter(): NextRouter;
-}
-`;
   }
 }
