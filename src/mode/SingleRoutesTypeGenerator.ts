@@ -81,30 +81,47 @@ declare module 'next/link' {
 // prettier-ignore
 declare module 'next/router' {
   import type { ${this.LINK_TYPE_NAME} } from '${packageName}';
-  import type {NextRouter as OriginalNextRouter, SingletonRouter} from 'next/dist/client/router';
+  
+  import {UrlObject} from 'url';
+
+  import type {
+    NextRouter as OriginalNextRouter,
+    SingletonRouter as OriginalSingletonRouter,
+  } from 'next/dist/client/router';
+
   import OriginalRouter from 'next/dist/client/router';
-        
+
   export * from 'next/dist/client/router';
 
+  type Url = UrlObject | string;
+
   interface OverridingRouterType {
-    push: (route: ${this.LINK_TYPE_NAME}) => ReturnType<OriginalNextRouter['push']>;
+    push: (
+      route: ${this.LINK_TYPE_NAME},
+      as?: Url,
+      options?: TransitionOptions,
+    ) => ReturnType<OriginalNextRouter['push']>;
     replace: (
       route: ${this.LINK_TYPE_NAME},
+      as?: Url,
+      options?: TransitionOptions,
     ) => ReturnType<OriginalNextRouter['replace']>;
     prefetch: (
       route: ${this.LINK_TYPE_NAME},
+      as?: Url,
+      options?: TransitionOptions,
     ) => ReturnType<OriginalNextRouter['prefetch']>;
   }
   
-  interface Router
-    extends Omit<SingletonRouter, 'push' | 'replace' | 'prefetch'>,
-      OverridingRouterType {}
-
   export interface NextRouter
     extends Omit<OriginalNextRouter, 'push' | 'replace' | 'prefetch'>,
       OverridingRouterType {}
 
-  declare const _default: Router;
+  interface SingletonRouter extends Omit<OriginalSingletonRouter, 'router'> {
+    router: NextRouter;
+  }
+
+  declare const _default: SingletonRouter;
   export default _default;
   export declare function useRouter(): NextRouter;
 }
