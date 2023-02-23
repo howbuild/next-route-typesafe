@@ -17,7 +17,7 @@ export interface WriteRoutesTypeProps {
   config: RoutesTypeGeneratorConfig;
 }
 
-export interface RoutesTypeGeneratorConfig {
+interface RoutesTypeGeneratorConfig {
   isStrict: boolean;
   basePath: string;
 }
@@ -46,7 +46,7 @@ export abstract class RoutesTypeGeneratorTemplate {
   }
 
   /**
-   * 주어진 path로부터 pages/ 디렉토리 하위를 탐색해서 link를 추출
+   * 주어진 path로부터 link를 추출
    * @param path 추출할 대상(apps/pages/production/[detail]/index.tsx 형태)
    * @example
    * return "/production/[detail]/index.tsx"

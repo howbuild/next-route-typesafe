@@ -1,6 +1,6 @@
 import {RoutesTypeGeneratorTemplate, WriteRoutesTypeProps} from './RoutesTypeGeneratorTemplate';
 import fs from 'fs';
-import {generateAbsolutePath} from '../utils';
+import {generateAbsolutePath, generateNextJsRoutesTypeOverridingDeclare} from '../utils';
 
 interface GenerateLinkTypeDeclareProps {
   packageName: string;
@@ -58,73 +58,10 @@ declare module '${packageName}' {
   }
 
   private generateRoutesTypeWithUtilDeclare(packageName: string) {
-    return `\
-/* eslint-disable */
-// prettier-ignore
-declare module 'next/link' {
-  import type {ComponentProps} from 'react';
-        
-  import { ${this.LINK_TYPE_NAME} } from '${packageName}';
-  import NextLink, {LinkProps as NextLinkProps} from 'next/dist/client/link';
-        
-  export * from 'next/dist/client/link';
-        
-  export interface LinkProps extends Omit<ComponentProps<typeof NextLink>, 'href'> {
-    href: ${this.LINK_TYPE_NAME};
-  }
-    
-  declare function Link(props: LinkProps): ReturnType<typeof NextLink>;
-  
-  export default Link;
-}
-  
-// prettier-ignore
-declare module 'next/router' {
-  import type { ${this.LINK_TYPE_NAME} } from '${packageName}';
-  
-  import {UrlObject} from 'url';
-
-  import type {
-    NextRouter as OriginalNextRouter,
-    SingletonRouter as OriginalSingletonRouter,
-  } from 'next/dist/client/router';
-
-  import OriginalRouter from 'next/dist/client/router';
-
-  export * from 'next/dist/client/router';
-
-  type Url = UrlObject | string;
-
-  interface OverridingRouterType {
-    push: (
-      route: ${this.LINK_TYPE_NAME},
-      as?: Url,
-      options?: TransitionOptions,
-    ) => ReturnType<OriginalNextRouter['push']>;
-    replace: (
-      route: ${this.LINK_TYPE_NAME},
-      as?: Url,
-      options?: TransitionOptions,
-    ) => ReturnType<OriginalNextRouter['replace']>;
-    prefetch: (
-      route: ${this.LINK_TYPE_NAME},
-      as?: Url,
-      options?: TransitionOptions,
-    ) => ReturnType<OriginalNextRouter['prefetch']>;
-  }
-  
-  export interface NextRouter
-    extends Omit<OriginalNextRouter, 'push' | 'replace' | 'prefetch'>,
-      OverridingRouterType {}
-
-  interface SingletonRouter extends Omit<OriginalSingletonRouter, 'router'> {
-    router: NextRouter;
-  }
-
-  declare const _default: SingletonRouter;
-  export default _default;
-  export declare function useRouter(): NextRouter;
-}
-`;
+    return generateNextJsRoutesTypeOverridingDeclare({
+      linkTypeDeclareFileName: packageName,
+      generatedTypeName: this.LINK_TYPE_NAME,
+      internalTypeName: this.LINK_TYPE_NAME,
+    });
   }
 }
