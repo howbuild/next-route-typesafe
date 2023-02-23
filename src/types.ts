@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-types */
+import {UrlObject} from 'url';
+
 type ParamValue = string | number | boolean;
 export interface LinkProps {
   pathname: string;
@@ -54,19 +57,19 @@ type PathParams<P extends string> = ConvertUnionToIntersection<
   ParsePathParam<ExtractPathParam<SplitByDivider<P, '/'>>>
 >;
 
-type LinkModel<Path extends string> = PathParams<Path> extends Record<string, ParamValue>
+type LinkModel<Path extends string> = (PathParams<Path> extends Record<string, ParamValue>
   ? {
       query: PathParams<Path> & DynamicQuery;
-      pathname: Path;
+      pathname: Path | (string & {});
     }
   : {
       query?: PathParams<Path> | DynamicQuery;
-      pathname: Path;
-    };
+      pathname: Path | (string & {});
+    }) &
+  Omit<UrlObject, 'pathname' | 'query'>;
 
 export type Link<Path extends string, Strict extends boolean> = Strict extends true
   ? PathParams<Path> extends Record<string, ParamValue>
     ? LinkModel<Path>
     : Path | LinkModel<Path>
-  : // eslint-disable-next-line @typescript-eslint/ban-types
-    LinkModel<Path> | Path | {};
+  : LinkModel<Path> | Path;
