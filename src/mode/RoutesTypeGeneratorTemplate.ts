@@ -74,28 +74,14 @@ export abstract class RoutesTypeGeneratorTemplate {
     });
   }
 
-  /**
-   * nextjs 프로젝트 root에 next/link, next/router overriding type을 만들 함수
-   */
-  protected abstract writeNextRoutesType(props: WriteRoutesTypeProps): void;
-
-  /**
-   * 전체 프로젝트 page하위의 path를 추출하여 link type을 만들 함수
-   */
-  protected abstract writeLinkType(props: WriteRoutesTypeProps): void;
+  protected abstract writeRoutesTypeDeclare(props: WriteRoutesTypeProps): void;
 
   public write(paths: string[], config: RoutesTypeGeneratorConfig) {
     const nextJsServicesInfo = this.generateNextJsServicesInfo(paths, config.basePath);
     const packageName = 'next-route-typesafe';
 
     try {
-      this.writeNextRoutesType({
-        packageName,
-        nextJsServicesInfo,
-        config,
-      });
-
-      this.writeLinkType({
+      this.writeRoutesTypeDeclare({
         packageName,
         nextJsServicesInfo,
         config,

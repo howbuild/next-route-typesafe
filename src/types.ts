@@ -2,13 +2,14 @@
 import {UrlObject} from 'url';
 
 type ParamValue = string | number | boolean;
+
 export interface LinkProps {
   pathname: string;
   query?: Record<string, ParamValue>;
 }
 
 /**
- * router.config.js에서 사용할 type
+ * route.config.js에서 사용할 type
  */
 export interface RouterConfig {
   basePath?: string;
@@ -53,11 +54,11 @@ type ParsePathParam<UnionPathParam extends string> = UnionPathParam extends `${i
   ? Record<PathParam, ParamValue>
   : undefined;
 
-type PathParams<P extends string> = ConvertUnionToIntersection<
+export type PathParams<P extends string> = ConvertUnionToIntersection<
   ParsePathParam<ExtractPathParam<SplitByDivider<P, '/'>>>
 >;
 
-type LinkModel<Path extends string> = (PathParams<Path> extends Record<string, ParamValue>
+export type LinkModel<Path extends string> = (PathParams<Path> extends Record<string, ParamValue>
   ? {
       query: PathParams<Path> & DynamicQuery;
       pathname: Path | (string & {});
@@ -73,3 +74,15 @@ export type Link<Path extends string, Strict extends boolean> = Strict extends t
     ? LinkModel<Path>
     : Path | LinkModel<Path>
   : LinkModel<Path> | Path;
+
+export interface NonStrictLinkModel extends Omit<UrlObject, 'pathname' | 'query'> {
+  pathname: string;
+  query?: DynamicQuery;
+}
+
+export interface StrictLinkModel<Path extends string> extends Omit<UrlObject, 'pathname' | 'query'> {
+  pathname: Path;
+  query: PathParams<Path> | DynamicQuery;
+}
+
+// 컴툴 이미지 optimization

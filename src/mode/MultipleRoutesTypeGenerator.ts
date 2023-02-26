@@ -21,9 +21,12 @@ export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
   private NEXT_ROUTES_OVERRIDING_TYPE_NAME = 'routes-overriding.d.ts';
 
   /**
-   * @Override
+   * nextjs 프로젝트 root에 next/link, next/router overriding type을 만들 함수
    */
-  protected writeNextRoutesType({packageName, nextJsServicesInfo}: WriteRoutesTypeProps): void {
+  protected writeNextRoutesType(
+    packageName: WriteRoutesTypeProps['packageName'],
+    nextJsServicesInfo: WriteRoutesTypeProps['nextJsServicesInfo'],
+  ): void {
     const serviceRootPathMapping = nextJsServicesInfo.reduce((group, nextJsServiceInfo) => {
       group[nextJsServiceInfo.serviceName] = nextJsServiceInfo.rootPath;
       return group;
@@ -42,7 +45,7 @@ export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
   }
 
   /**
-   * @Override
+   * 전체 프로젝트 page하위의 path를 추출하여 link type을 만들 함수
    */
   protected writeLinkType({packageName, nextJsServicesInfo, config}: WriteRoutesTypeProps): void {
     const serviceLinkMapping = nextJsServicesInfo.reduce((group, nextJsServiceInfo) => {
@@ -58,6 +61,14 @@ export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
     });
 
     fs.writeFileSync(generateAbsolutePath(this.LINK_TYPE_DECLARE_NAME), typeDeclareTemplate);
+  }
+
+  /**
+   * @Override
+   */
+  protected writeRoutesTypeDeclare({packageName, nextJsServicesInfo, config}: WriteRoutesTypeProps): void {
+    this.writeNextRoutesType(packageName, nextJsServicesInfo);
+    this.writeLinkType({packageName, nextJsServicesInfo, config});
   }
 
   private generateRoutesTypeWithUtilDeclare({
