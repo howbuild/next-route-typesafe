@@ -99,8 +99,6 @@ declare module '${packageName}' {
     ParsePathParam<ExtractPathParam<SplitByDivider<Path, '/'>>>
   >;
 
-  export type ${this.LINK_TYPE_NAME} = (${links.map((link) => `'${link}'`).join(' | ')})
-
 
   type OverridingLinkHref<Path extends string, CustomPath extends string> = (PathParams<CustomPath> extends Record<
     string,
@@ -115,6 +113,8 @@ declare module '${packageName}' {
         pathname: CustomPath | Path;
       }) &
     Omit<UrlObject, 'pathname' | 'query'>;
+
+  export type ${this.LINK_TYPE_NAME} = (${links.map((link) => `'${link}'`).join(' | ')})
 
   export type LinkHrefProp<Path extends ${this.LINK_TYPE_NAME}, CustomPath extends string> = 
     | Path

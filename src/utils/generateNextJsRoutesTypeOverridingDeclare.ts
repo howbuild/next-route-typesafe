@@ -22,12 +22,12 @@ declare module 'next/link' {
         
   export * from 'next/dist/client/link';
    
-  export interface LinkProps<T = ${generatedTypeName}, B = string>
+  export interface LinkProps<T = ${internalTypeName}, B = string>
     extends Omit<ComponentProps<typeof NextLink>, 'href'> {
     href: LinkHrefProp<T, B>;
   }
     
-  export default function Link<T extends ${generatedTypeName}, B extends string>(
+  export default function Link<T extends ${internalTypeName}, B extends string>(
     props: LinkProps<T, ${isStrict ? 'T' : 'B'}>,
   ): ReturnType<typeof NextLink>;
   
