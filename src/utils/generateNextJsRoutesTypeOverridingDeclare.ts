@@ -1,6 +1,7 @@
 export interface GenerateNextJsRoutesTypeOverridingDeclareProps {
   generatedTypeName: string;
   linkTypeDeclareFileName: string;
+  isStrict?: boolean;
   internalTypeName?: string;
 }
 
@@ -8,6 +9,7 @@ export const generateNextJsRoutesTypeOverridingDeclare = ({
   generatedTypeName,
   linkTypeDeclareFileName,
   internalTypeName,
+  isStrict = false,
 }: GenerateNextJsRoutesTypeOverridingDeclareProps) => {
   return `\
 /* eslint-disable */
@@ -15,75 +17,69 @@ export const generateNextJsRoutesTypeOverridingDeclare = ({
 declare module 'next/link' {
   import type {ComponentProps} from 'react';
         
-  import { ${generatedTypeName} } from '${linkTypeDeclareFileName}';
+  import { ${generatedTypeName}, LinkHrefProp } from '${linkTypeDeclareFileName}';
   import NextLink, {LinkProps as NextLinkProps} from 'next/dist/client/link';
         
   export * from 'next/dist/client/link';
-        
-  export interface LinkProps extends Omit<ComponentProps<typeof NextLink>, 'href'> {
-    href: ${internalTypeName};
+   
+  export interface LinkProps<T = ${generatedTypeName}, B = string>
+    extends Omit<ComponentProps<typeof NextLink>, 'href'> {
+    href: LinkHrefProp<T, B>;
   }
     
-  declare function Link(props: LinkProps): ReturnType<typeof NextLink>;
+  export default function Link<T extends ${generatedTypeName}, B extends string>(
+    props: LinkProps<T, ${isStrict ? 'T' : 'B'}>,
+  ): ReturnType<typeof NextLink>;
   
   export default Link;
 }
   
 // prettier-ignore
 declare module 'next/router' {
-  import type {${generatedTypeName}} from '${linkTypeDeclareFileName}';
-  
   import {UrlObject} from 'url';
-  
+
   import type {
     NextRouter as OriginalNextRouter,
     SingletonRouter as OriginalSingletonRouter,
   } from 'next/dist/client/router';
-  
   import OriginalRouter from 'next/dist/client/router';
+
+  import type {${generatedTypeName}, LinkHrefProp, PathParams} from '${linkTypeDeclareFileName}';
         
   export * from 'next/dist/client/router';
   
-  type Url = UrlObject | string;
-  
-  interface OverridingRouterType {
-    push: (
-      route: ${internalTypeName},
-      as?: Url,
-
-      // TODO: 타입없음
-      options?: TransitionOptions,
-
+  type OverridingRouterType = {
+    push: <T extends ${internalTypeName}, B extends string>(
+      route: LinkHrefProp<T, ${isStrict ? 'T' : 'B'}>,
+      as?: Parameters<OriginalNextRouter['push']>[1],
+      options?: Parameters<OriginalNextRouter['push']>[2],
     ) => ReturnType<OriginalNextRouter['push']>;
-    replace: (
-      route: ${internalTypeName},
-      as?: Url,
 
-      // TODO: 타입없음
-      options?: TransitionOptions,
-
+    replace: <T extends ${internalTypeName}, B extends string>(
+      route: LinkHrefProp<T, ${isStrict ? 'T' : 'B'}>,
+      as?: Parameters<OriginalNextRouter['replace']>[1],
+      options?: Parameters<OriginalNextRouter['replace']>[2],
     ) => ReturnType<OriginalNextRouter['replace']>;
-    prefetch: (
-      route: ${internalTypeName},
-      as?: Url,
 
-      // TODO: 타입없음
-      options?: TransitionOptions,
-      
+    prefetch: <T extends ${internalTypeName}, B extends string>(
+      route: T | B,
+      as?: Parameters<OriginalNextRouter['prefetch']>[1],
+      options?: Parameters<OriginalNextRouter['prefetch']>[2],
     ) => ReturnType<OriginalNextRouter['prefetch']>;
-  }
+  } & Omit<OriginalNextRouter, 'push' | 'replace' | 'prefetch'>;
   
-  export interface NextRouter
-    extends Omit<OriginalNextRouter, 'push' | 'replace' | 'prefetch'>,
-      OverridingRouterType {}
+  export interface NextRouter extends OverridingRouterType {}
   
-  interface SingletonRouter extends Omit<OriginalSingletonRouter, 'router'> {
+  interface SingletonRouter
+    extends Omit<OriginalSingletonRouter, 'router' | 'push' | 'replace' | 'prefetch'>,
+      OverridingRouterType {
     router: NextRouter;
   }
   
   declare const _default: SingletonRouter;
   export default _default;
-  export declare function useRouter(): NextRouter;
+
+  export function useRouter(): NextRouter;
 }
 `;
 };
