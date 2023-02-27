@@ -50,10 +50,11 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
 // prettier-ignore
 /* eslint-disable */
 declare module '${packageName}' {
-  import {UrlObject} from 'url';
+  import { UrlObject } from 'url';
+  import {ParsedUrlQueryInput} from 'querystring';
   export * from 'next-route-typesafe/dist/lib/types';
 
-  type ParamValue = string | number | boolean;
+  type ParamValue = ParsedUrlQueryInput[number];
 
   /**
    * union(|) 타입을 intersection(&) 타입으로 변경
@@ -119,7 +120,9 @@ declare module '${packageName}' {
   export type LinkHrefProp<Path extends ${this.LINK_TYPE_NAME}, CustomPath extends string> = 
     | Path
     | CustomPath
-    | OverridingLinkHref<Path, CustomPath>;
+    | OverridingLinkHref<Path, CustomPath>
+    ${isStrict ? '' : '| Omit<UrlObject, "pathname" | "query">'};
+    
 
   export function generateInternalLink<
     Path extends ${this.LINK_TYPE_NAME},
