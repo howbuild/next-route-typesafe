@@ -36,8 +36,6 @@ declare module 'next/link' {
   
 // prettier-ignore
 declare module 'next/router' {
-  import {UrlObject} from 'url';
-
   import type {
     NextRouter as OriginalNextRouter,
     SingletonRouter as OriginalSingletonRouter,

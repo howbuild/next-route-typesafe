@@ -13,6 +13,7 @@ interface GenerateRoutesTypeWithUtilDeclareProps {
 interface GenerateLinkTypeDeclareProps {
   packageName: string;
   serviceLinkMapping: Record<string, string[]>;
+  isStrict: boolean;
 }
 
 export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
@@ -45,7 +46,7 @@ export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
   /**
    * 전체 프로젝트 page하위의 path를 추출하여 link type을 만들 함수
    */
-  protected writeLinkType({packageName, nextJsServicesInfo}: WriteRoutesTypeProps): void {
+  protected writeLinkType({packageName, nextJsServicesInfo, config}: WriteRoutesTypeProps): void {
     const serviceLinkMapping = nextJsServicesInfo.reduce((group, nextJsServiceInfo) => {
       group[nextJsServiceInfo.serviceName] = group[nextJsServiceInfo.serviceName] || [];
       group[nextJsServiceInfo.serviceName].push(nextJsServiceInfo.link);
@@ -55,6 +56,7 @@ export class MultipleRoutesType extends RoutesTypeGeneratorTemplate {
     const typeDeclareTemplate = this.generateLinkTypeDeclare({
       packageName,
       serviceLinkMapping,
+      isStrict: config.isStrict,
     });
 
     fs.writeFileSync(generateAbsolutePath(this.LINK_TYPE_DECLARE_NAME), typeDeclareTemplate);
@@ -112,14 +114,15 @@ ${generateNextJsRoutesTypeOverridingDeclare({
 `;
   }
 
-  private generateLinkTypeDeclare({serviceLinkMapping}: GenerateLinkTypeDeclareProps) {
+  private generateLinkTypeDeclare({serviceLinkMapping, isStrict}: GenerateLinkTypeDeclareProps) {
     return `\
 // prettier-ignore
 /* eslint-disable */
 declare module '${this.LINK_TYPE_DECLARE_NAME}' {
+  import {ParsedUrlQueryInput} from 'querystring';
   import {UrlObject} from 'url';
 
-  type ParamValue = string | number | boolean;
+  type ParamValue = ParsedUrlQueryInput[number];
 
   /**
    * union(|) 타입을 intersection(&) 타입으로 변경
@@ -183,7 +186,8 @@ declare module '${this.LINK_TYPE_DECLARE_NAME}' {
   export type LinkHrefProp<Path extends string, CustomPath extends string> = 
     | Path
     | CustomPath
-    | OverridingLinkHref<Path, CustomPath>;
+    | OverridingLinkHref<Path, CustomPath>
+    ${isStrict ? '' : '| Omit<UrlObject, "pathname" | "query">'};
 
   export type ${this.LINK_TYPE_NAME} = {
     ${Object.keys(serviceLinkMapping).map((key) => {
