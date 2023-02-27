@@ -1,6 +1,6 @@
 import {RoutesTypeGeneratorTemplate, WriteRoutesTypeProps} from './RoutesTypeGeneratorTemplate';
 import fs from 'fs';
-import {generateAbsolutePath} from '../utils';
+import {generateAbsolutePath, generateNextJsRoutesTypeOverridingDeclare} from '../utils';
 
 interface GenerateLinkTypeDeclareProps {
   packageName: string;
@@ -9,21 +9,21 @@ interface GenerateLinkTypeDeclareProps {
 }
 
 export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
-  private LINK_TYPE_NAME = 'LinkTypes';
+  private LINK_TYPE_NAME = 'LinkUrlTypes';
   private LINK_TYPE_DECLARE_NAME = 'routes.d.ts';
   private NEXT_ROUTES_OVERRIDING_TYPE_NAME = 'next-routes-overriding.d.ts';
 
   /**
-   * @Override
+   * nextjs 프로젝트 root에 next/link, next/router overriding type을 만들 함수
    */
-  protected writeNextRoutesType({packageName}: WriteRoutesTypeProps): void {
-    const template = this.generateRoutesTypeWithUtilDeclare(packageName);
+  protected writeNextRoutesType(packageName: string, isStrict: boolean): void {
+    const template = this.generateRoutesTypeWithUtilDeclare(packageName, isStrict);
 
     fs.writeFileSync(generateAbsolutePath(this.NEXT_ROUTES_OVERRIDING_TYPE_NAME), template);
   }
 
   /**
-   * @Override
+   * 전체 프로젝트 page하위의 path를 추출하여 link type을 만들 함수
    */
   protected writeLinkType({packageName, nextJsServicesInfo, config}: WriteRoutesTypeProps): void {
     const links = nextJsServicesInfo.map((nextJsServiceInfo) => nextJsServiceInfo.link);
@@ -37,77 +37,110 @@ export class SingleRoutesTypeGenerator extends RoutesTypeGeneratorTemplate {
     fs.writeFileSync(generateAbsolutePath(this.LINK_TYPE_DECLARE_NAME), template);
   }
 
+  /**
+   * @Override
+   */
+  protected writeRoutesTypeDeclare({packageName, nextJsServicesInfo, config}: WriteRoutesTypeProps): void {
+    this.writeNextRoutesType(packageName, config.isStrict);
+    this.writeLinkType({packageName, nextJsServicesInfo, config});
+  }
+
   private generateLinkTypeDeclare({packageName, links, isStrict}: GenerateLinkTypeDeclareProps) {
     return `\
 // prettier-ignore
 /* eslint-disable */
 declare module '${packageName}' {
-  import type { Link } from "${packageName}/dist/lib/types"
-  
-  export * from "${packageName}/dist/lib/types"
+  import {UrlObject} from 'url';
+  export * from 'next-route-typesafe/dist/lib/types';
 
-  type ExternalLink = ${this.LINK_TYPE_NAME} & ""
-  export type ${this.LINK_TYPE_NAME} = (${links.map((link) => `Link<'${link}', ${isStrict}>`).join(' | ')})
-  
-  export function generateInternalLink<K extends RouteType>(routes: ${this.LINK_TYPE_NAME}, origin?: string): ${
-      this.LINK_TYPE_NAME
-    };
-  export function generateExternalLink(link: string): ExternalLink;
-}
-`;
-  }
+  type ParamValue = string | number | boolean;
 
-  private generateRoutesTypeWithUtilDeclare(packageName: string) {
-    return `\
-/* eslint-disable */
-// prettier-ignore
-declare module 'next/link' {
-  import type {ComponentProps} from 'react';
-        
-  import { ${this.LINK_TYPE_NAME} } from '${packageName}';
-  import NextLink, {LinkProps as NextLinkProps} from 'next/dist/client/link';
-        
-  export * from 'next/dist/client/link';
-        
-  export interface LinkProps extends Omit<ComponentProps<typeof NextLink>, 'href'> {
-    href: ${this.LINK_TYPE_NAME};
-  }
+  /**
+   * union(|) 타입을 intersection(&) 타입으로 변경
+   * @example
+   * infer {a:1} & {b:1}
+   * ConvertUnionToIntersection<{a:1} | {b:1}>
+   */
+  type ConvertUnionToIntersection<Union> = (
+    Union extends any ? (k: Union) => void : never
+  ) extends (k: infer Intersection) => void
+    ? Intersection
+    : never;
+
     
-  declare function Link(props: LinkProps): ReturnType<typeof NextLink>;
-  
-  export default Link;
-}
-  
-// prettier-ignore
-declare module 'next/router' {
-  import type { ${this.LINK_TYPE_NAME} } from '${packageName}';
-  import type {NextRouter as OriginalNextRouter, SingletonRouter} from 'next/dist/client/router';
-  import OriginalRouter from 'next/dist/client/router';
-        
-  export * from 'next/dist/client/router';
+  /**
+   * path에서 주어진 Divider를 기준으로 전부 split
+   * @example
+   * infer ['', 'test', '[id]', '[user]']
+   * SplitByDivider<'/test/[id]/[user]', '/'>
+   */
+  type SplitByDivider<
+    Path extends string,
+    Divider extends string,
+  > = Path extends \`\${infer LeftString}\${Divider}\${infer RightString}\` ? LeftString | SplitByDivider<RightString, Divider> : Path;
 
-  interface OverridingRouterType {
-    push: (route: ${this.LINK_TYPE_NAME}) => ReturnType<OriginalNextRouter['push']>;
-    replace: (
-      route: ${this.LINK_TYPE_NAME},
-    ) => ReturnType<OriginalNextRouter['replace']>;
-    prefetch: (
-      route: ${this.LINK_TYPE_NAME},
-    ) => ReturnType<OriginalNextRouter['prefetch']>;
-  }
-  
-  interface Router
-    extends Omit<SingletonRouter, 'push' | 'replace' | 'prefetch'>,
-      OverridingRouterType {}
+  /**
+   * path에서 param을 추출
+   * @example
+   * infer 'id' | 'user'
+   * ExtractPathParam<'[id]' | '[user]'>
+   */
+  type ExtractPathParam<SplittedPath extends string> = SplittedPath extends \`[\${infer PathParam}]\`
+    ? PathParam
+    : never;
 
-  export interface NextRouter
-    extends Omit<OriginalNextRouter, 'push' | 'replace' | 'prefetch'>,
-      OverridingRouterType {}
+  type DynamicQuery = Record<string, ParamValue>;
 
-  declare const _default: Router;
-  export default _default;
-  export declare function useRouter(): NextRouter;
+  type ParsePathParam<UnionPathParam extends string> = UnionPathParam extends \`\${infer PathParam}\`
+    ? Record<PathParam, ParamValue>
+    : undefined;
+
+  export type PathParams<Path extends string> = ConvertUnionToIntersection<
+    ParsePathParam<ExtractPathParam<SplitByDivider<Path, '/'>>>
+  >;
+
+
+  type OverridingLinkHref<Path extends string, CustomPath extends string> = (PathParams<CustomPath> extends Record<
+    string,
+    ParamValue
+  >
+    ? {
+        query: PathParams<CustomPath> & DynamicQuery;
+        pathname: CustomPath | Path;
+      }
+    : {
+        query?: PathParams<CustomPath> & DynamicQuery;
+        pathname: CustomPath | Path;
+      }) &
+    Omit<UrlObject, 'pathname' | 'query'>;
+
+  export type ${this.LINK_TYPE_NAME} = (${links.map((link) => `'${link}'`).join(' | ')})
+
+  export type LinkHrefProp<Path extends ${this.LINK_TYPE_NAME}, CustomPath extends string> = 
+    | Path
+    | CustomPath
+    | OverridingLinkHref<Path, CustomPath>;
+
+  export function generateInternalLink<
+    Path extends ${this.LINK_TYPE_NAME},
+    CustomPath extends string
+  >(routes: LinkHrefProp<Path, ${isStrict ? 'Path' : 'CustomPath'}>, origin?: string): LinkHrefProp<Path, ${
+      isStrict ? 'Path' : 'CustomPath'
+    }> & string;
+
+  // export function generateExternalLink<P extends string>(
+  //   link: P,
+  // ): P;
 }
 `;
+  }
+
+  private generateRoutesTypeWithUtilDeclare(packageName: string, isStrict: boolean) {
+    return generateNextJsRoutesTypeOverridingDeclare({
+      linkTypeDeclareFileName: packageName,
+      generatedTypeName: this.LINK_TYPE_NAME,
+      internalTypeName: this.LINK_TYPE_NAME,
+      isStrict,
+    });
   }
 }

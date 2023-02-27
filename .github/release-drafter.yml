@@ -11,6 +11,7 @@ categories:
     label:
       - 'chore'
       - 'enhancement'
+      - 'refactor'
   - title: '📚 Documentation'
     label: 'documentation'
 change-template: '- $TITLE @$AUTHOR (#$NUMBER)'
@@ -27,7 +28,8 @@ version-resolver:
     labels:
       - 'bug'
       - 'chore'
-      - 'documentation'
+      - 'documentation',
+      - 'refactor'
   default: patch
 template: |
   ## 변경사항
