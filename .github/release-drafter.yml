@@ -28,7 +28,7 @@ version-resolver:
     labels:
       - 'bug'
       - 'chore'
-      - 'documentation',
+      - 'documentation'
       - 'refactor'
   default: patch
 template: |
