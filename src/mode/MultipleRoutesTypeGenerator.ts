@@ -187,7 +187,7 @@ declare module '${this.LINK_TYPE_DECLARE_NAME}' {
     | Path
     | CustomPath
     | OverridingLinkHref<Path, CustomPath>
-    ${isStrict ? '' : '| Omit<UrlObject, "pathname" | "query">'};
+    ${isStrict ? '' : '| UrlObject'};
 
   export type ${this.LINK_TYPE_NAME} = {
     ${Object.keys(serviceLinkMapping).map((key) => {
