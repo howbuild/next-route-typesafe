@@ -121,7 +121,7 @@ declare module '${packageName}' {
     | Path
     | CustomPath
     | OverridingLinkHref<Path, CustomPath>
-    ${isStrict ? '' : '| Omit<UrlObject, "pathname" | "query">'};
+    ${isStrict ? '' : '| UrlObject'};
     
 
   export function generateInternalLink<
