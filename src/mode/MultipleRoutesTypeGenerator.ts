@@ -98,7 +98,7 @@ declare module '${packageName}' {
 
   export function generateServiceLink(
     env: Record<ServiceName, string>,
-  ): <K extends ServiceName, CustomPath extends string, Path extends ${serviceLinkTypeName}>(
+  ): <K extends ServiceName, CustomPath extends string, Path extends ${this.LINK_TYPE_NAME}[K]>(
     type: K,
     routes: LinkHrefProp<Path, ${isStrict ? 'Path' : 'CustomPath'}>,
   ) => GenerateLinkReturnType;
